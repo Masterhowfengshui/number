@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>号码起卦系统（完整版）</title>
+
+<style>
+body{
+    font-family:"PingFang SC","Microsoft YaHei",Arial;
+    background:linear-gradient(135deg,#f5f7fa,#e4ecf5);
+    margin:0;
+}
+
+/* LOGO */
+.logo-fixed{
+    position:fixed;
+    top:10px;
+    left:10px;
+}
+.logo-fixed img{
+    width:45px;
+}
+
+/* 标题 */
+h2{
+    text-align:center;
+    margin-top:70px;
+    letter-spacing:2px;
+    font-size:18px;
+    font-weight:600;
+}
+
+/* 输入 */
+.container{
+    text-align:center;
+    padding:0 10px;
+}
+
+input{
+    padding:10px;
+    width:100%;
+    max-width:320px;
+    border-radius:6px;
+    border:1px solid #ccc;
+}
+
+/* 布局 */
+.row{
+    display:flex;
+    justify-content:center;
+    gap:15px;
+    margin-top:30px;
+    flex-wrap:wrap;
+}
+
+/* 卡片 */
+.card{
+    background:#fff;
+    padding:15px;
+    border-radius:12px;
+    width:100%;
+    max-width:300px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.1);
+    margin-bottom:10px;
+}
+
+/* 卦结构 */
+.column{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+.line{
+    position:relative;
+    width:90px;
+    height:12px;
+    margin:5px 0;
+}
+
+.yang{background:currentColor;}
+
+.yin{
+    display:flex;
+    justify-content:space-between;
+}
+
+.yin div{
+    width:40px;
+    height:12px;
+    background:currentColor;
+}
+
+.move-text{
+    position:absolute;
+    right:-18px;
+    top:-2px;
+    font-size:10px;
+    color:red;
+    font-weight:bold;
+}
+
+/* 吉凶 */
+.good{
+    color:#0a7f2e;
+    background:#e6f4ea;
+    padding:3px 8px;
+    border-radius:6px;
+    font-weight:bold;
+    font-size:13px;
+}
+
+.bad{
+    color:#a8071a;
+    background:#fdecea;
+    padding:3px 8px;
+    border-radius:6px;
+    font-weight:bold;
+    font-size:13px;
+}
+
+.title{
+    font-weight:bold;
+    margin-bottom:10px;
+}
+
+.gua-name{
+    margin-top:6px;
+    font-size:14px;
+    font-weight:bold;
+}
+
+/* ✅ 手机专用优化（关键） */
+@media (max-width: 600px){
+
+    body{
+        transform: scale(0.78);
+        transform-origin: top center;
+    }
+
+    h2{
+        font-size:16px;
+        margin-top:60px;
+    }
+
+    .row{
+        gap:10px;
+        margin-top:20px;
+    }
+
+    .card{
+        padding:10px;
+        margin-bottom:6px;
+    }
+
+    .line{
+        width:70px;
+        height:10px;
+        margin:4px 0;
+    }
+
+    .yin div{
+        width:30px;
+        height:10px;
+    }
+
+    .gua-name{
+        font-size:12px;
+    }
+
+    .good,.bad{
+        font-size:11px;
+        padding:2px 6px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="logo-fixed">
+    <img src="sediment://file_00000000642071f88039c92d9348b7d5">
+</div>
+
+<div class="container">
+
+<h2>📞 号码起卦系统</h2>
+
+<input id="num"
+placeholder="输入号码（支持20位）"
+oninput="handleInput(this)">
+
+<div class="row" id="result"></div>
+
+</div>
+
+<script>
+
+const numToGua={
+1:"111",2:"110",3:"101",4:"100",
+5:"011",6:"010",7:"001",8:"000"
+};
+
+const baguaMap={
+"111":{name:"乾",ele:"金",color:"#D4AF37"},
+"110":{name:"兑",ele:"金",color:"#D4AF37"},
+"101":{name:"离",ele:"火",color:"red"},
+"100":{name:"震",ele:"木",color:"green"},
+"011":{name:"巽",ele:"木",color:"green"},
+"010":{name:"坎",ele:"水",color:"black"},
+"001":{name:"艮",ele:"土",color:"#6b4f3a"},
+"000":{name:"坤",ele:"土",color:"#6b4f3a"}
+};
+
+const gua64 = {
+"111111":"乾为天","111110":"天泽履","111101":"天火同人","111100":"天雷无妄","111011":"天风姤","111010":"天水讼","111001":"天山遁","111000":"天地否",
+"110111":"泽天夬","110110":"兑为泽","110101":"泽火革","110100":"泽雷随","110011":"泽风大过","110010":"泽水困","110001":"泽山咸","110000":"泽地萃",
+"101111":"火天大有","101110":"火泽睽","101101":"离为火","101100":"火雷噬嗑","101011":"火风鼎","101010":"火水未济","101001":"火山旅","101000":"火地晋",
+"100111":"雷天大壮","100110":"雷泽归妹","100101":"雷火丰","100100":"震为雷","100011":"雷风恒","100010":"雷水解","100001":"雷山小过","100000":"雷地豫",
+"011111":"风天小畜","011110":"风泽中孚","011101":"风火家人","011100":"风雷益","011011":"巽为风","011010":"风水涣","011001":"风山渐","011000":"风地观",
+"010111":"水天需","010110":"水泽节","010101":"水火既济","010100":"水雷屯","010011":"水风井","010010":"坎为水","010001":"水山蹇","010000":"水地比",
+"001111":"山天大畜","001110":"山泽损","001101":"山火贲","001100":"山雷颐","001011":"山风蛊","001010":"山水蒙","001001":"艮为山","001000":"山地剥",
+"000111":"地天泰","000110":"地泽临","000101":"地火明夷","000100":"地雷复","000011":"地风升","000010":"地水师","000001":"地山谦","000000":"坤为地"
+};
+
+const sheng={"木":"火","火":"土","土":"金","金":"水","水":"木"};
+const ke={"木":"土","土":"水","水":"火","火":"金","金":"木"};
+
+function digit(n){ return n==="0"?8:parseInt(n); }
+
+function sumDigits(str){
+return str.split("").reduce((a,b)=>a+digit(b),0);
+}
+
+function mod8(n){ let r=n%8; return r===0?8:r; }
+function mod6(n){ let r=n%6; return r===0?6:r; }
+
+function handleInput(el){
+    el.value = el.value.replace(/[^0-9]/g,'');
+    if(el.value.length>=2){
+        calc();
+    }
+}
+
+function drawLine(bit,color,isMove){
+if(bit==="1"){
+return `<div class="line yang" style="color:${color}">
+${isMove?'<span class="move-text">动</span>':''}
+</div>`;
+}else{
+return `<div class="line yin" style="color:${color}">
+<div></div><div></div>
+${isMove?'<span class="move-text">动</span>':''}
+</div>`;
+}
+}
+
+function drawTrigram(bin,color,offset,move){
+let lines=[
+{bit:bin[0],index:offset+0},
+{bit:bin[1],index:offset+1},
+{bit:bin[2],index:offset+2}
+];
+return lines.reverse().map(l=>{
+return drawLine(l.bit,color,l.index===move);
+}).join("");
+}
+
+function relation(body,use){
+if(body===use) return `<span class="good">比旺（吉）</span>`;
+if(sheng[use]===body) return `<span class="good">生入（吉）</span>`;
+if(sheng[body]===use) return `<span class="bad">泄出（凶）</span>`;
+if(ke[body]===use) return `<span class="good">克出（吉）</span>`;
+if(ke[use]===body) return `<span class="bad">克入（凶）</span>`;
+return "平";
+}
+
+function getGuaName(upper,lower){
+    return gua64[upper+lower] || "未知卦";
+}
+
+function column(bin,move,isMain){
+
+let lower=bin.slice(0,3);
+let upper=bin.slice(3,6);
+
+let up=baguaMap[upper];
+let down=baguaMap[lower];
+
+let bodyEle,useEle;
+
+if(isMain){
+if(move>=3){
+bodyEle=down.ele; useEle=up.ele;
+}else{
+bodyEle=up.ele; useEle=down.ele;
+}
+}else{
+if(window.mainMove>=3){
+bodyEle=down.ele; useEle=up.ele;
+}else{
+bodyEle=up.ele; useEle=down.ele;
+}
+}
+
+let guaName = getGuaName(upper,lower);
+
+return `
+<div class="column">
+
+<div>
+<div>${up.name}（${up.ele}）</div>
+${drawTrigram(upper,up.color,3,move)}
+</div>
+
+<div>
+<div>${down.name}（${down.ele}）</div>
+${drawTrigram(lower,down.color,0,move)}
+</div>
+
+<div>${relation(bodyEle,useEle)}</div>
+<div class="gua-name">${guaName}</div>
+
+</div>
+`;
+}
+
+function calc(){
+
+let num=document.getElementById("num").value;
+if(num.length<2){return;}
+
+let len=num.length;
+
+let firstLen=Math.floor(len/2);
+let secondLen=len-firstLen;
+
+let first=num.slice(0,firstLen);
+let second=num.slice(firstLen);
+
+let sum1=sumDigits(first);
+let sum2=sumDigits(second);
+
+let upIndex=mod8(sum1);
+let downIndex=mod8(sum2);
+
+let upper=numToGua[upIndex];
+let lower=numToGua[downIndex];
+
+let main=lower+upper;
+
+window.mainMove=mod6(sum1+sum2)-1;
+let move=window.mainMove;
+
+let arr=main.split("");
+arr[move]=arr[move]==="1"?"0":"1";
+let change=arr.join("");
+
+let hu=main[1]+main[2]+main[3]+main[2]+main[3]+main[4];
+
+document.getElementById("result").innerHTML=`
+
+<div class="card">
+<div class="title">主卦（当下）</div>
+${column(main,move,true)}
+</div>
+
+<div class="card">
+<div class="title">互卦（过程）</div>
+${column(hu,-1,false)}
+</div>
+
+<div class="card">
+<div class="title">之卦（结果）</div>
+${column(change,-1,false)}
+</div>
+
+`;
+
+}
+
+</script>
+</body>
+</html>
